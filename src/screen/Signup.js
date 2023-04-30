@@ -1,0 +1,172 @@
+import { StyleSheet, Text, View, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native'
+import React, { useState } from 'react'
+import background from '../../assets/background.png'
+import { formgroup, head1, head2, input, label, link, link2, input1, errormessage } from '../common/form'
+import { button1 } from '../common/Button'
+
+
+const Signup = ({
+  navigation
+}) => {
+
+  const [fdata, setFdata] = useState({
+      name: '',
+      email: '',
+      password: '',
+      cpassword: '',
+      dob: '',
+      address: '',
+  })
+
+  const [errormsg, setErrormsg] = useState(null);
+
+  const Sendtobackend = () => {
+      // console.log(fdata);
+      if (fdata.name == '' ||
+          fdata.email == '' ||
+          fdata.password == '' ||
+          fdata.cpassword == '' ||
+          fdata.dob == '' ||
+          fdata.address == '') {
+          setErrormsg('All fields are required');
+          return;
+      }
+      else {
+          if (fdata.password != fdata.cpassword) {
+              setErrormsg('Password and Confirm Password must be same');
+              return;
+          }
+          else {
+              fetch('/verify', {
+                mode:"no-cors",
+                  method: 'POST',
+                  headers: {'Content-type': 'multipart/form-data'},
+                  body: JSON.stringify(fdata)
+              })
+              .then((response) => {
+                // *** Check for HTTP failure
+                
+                // *** Read the text of the response
+                return response.text();
+            })
+                  .then(
+                      data => {
+                          // console.log(data);
+                          if (data.error === 'Invalid Credentials') {
+                              // alert('Invalid Credentials')
+                              setErrormsg('Invalid Credentials')
+                          }
+                          else if (data.message === "Verification Code Sent to your Email") {
+                              // console.log(data.udata);
+                              alert(data.message);
+                              navigation.navigate('verification', { userdata: data.udata })
+                          }
+                      }
+                  )
+          }
+      }
+
+  }
+  return (
+    <View style={styles.container}>
+      <Image style={styles.patternbg} source={background} />
+
+      <View style={styles.container1}>
+        <View style={styles.s1}>
+
+        </View>
+        <ScrollView style={styles.s2}>
+          <Text style={head1}>Create a New Account</Text>
+          <Text style={link2}>Already Registered?&nbsp;
+            <Text style={link}
+              onPress={() => navigation.navigate('login')}> Login here</Text></Text>
+          {
+            errormsg ? <Text style={errormessage}>{errormsg}</Text> : null
+          }
+          <View style={formgroup}>
+            <Text style={label}>Name</Text>
+            <TextInput style={input} placeholder='Enter your Name'
+              onPressIn={() => setErrormsg(null)}
+              onChangeText={(text) => setFdata({ ...fdata, name: text })} />
+          </View>
+
+          <View style={formgroup}>
+            <Text style={label}>Email id</Text>
+            <TextInput style={input} placeholder='Enter your Email'
+              onPressIn={() => setErrormsg(null)}
+              onChangeText={(text) => setFdata({ ...fdata, email: text })} />
+          </View>
+          <View style={formgroup}>
+            <Text style={label}>DOB</Text>
+            <TextInput style={input1} placeholder='Enter your Date of birth'
+              onPressIn={() => setErrormsg(null)}
+              onChangeText={(text) => setFdata({ ...fdata, dob: text })} />
+          </View>
+
+          <View style={formgroup}>
+            <Text style={label}>Address</Text>
+            <TextInput style={input} placeholder='Enter your address'
+              onPressIn={() => setErrormsg(null)}
+              onChangeText={(text) => setFdata({ ...fdata, address: text })} />
+          </View>
+          <View style={formgroup}>
+            <Text style={label}>Password</Text>
+            <TextInput style={input} placeholder='Enter your Password'
+              onPressIn={() => setErrormsg(null)}
+              secureTextEntry={true}
+              onChangeText={(text) => setFdata({ ...fdata, password: text })} />
+          </View>
+          <View style={formgroup}>
+            <Text style={label}>Confirm Password</Text>
+            <TextInput style={input} placeholder='Confirm your password'
+              onPressIn={() => setErrormsg(null)}
+              secureTextEntry={true}
+              onChangeText={(text) => setFdata({ ...fdata, cpassword: text })} />
+          </View>
+
+
+          <TouchableOpacity onPress={() => { Sendtobackend(); }}>
+            <Text style={button1}>Signup</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+      </View>
+    </View>
+  )
+}
+
+export default Signup
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+  },
+  patternbg: {
+    position: 'absolute',
+    top: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+  },
+  s1: {
+    display: 'flex',
+    height: '10%'
+  },
+  s2: {
+    display: 'flex',
+    backgroundColor: '#fff',
+    width: '100%',
+    height: '90%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 20,
+  },
+  fp: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    marginHorizontal: 10,
+    marginVertical: 4,
+  }
+})
